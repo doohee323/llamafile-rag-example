@@ -52,8 +52,8 @@ echo "started generation model"
 # Run RAG app
 python app.py "$@"
 
-# Shut down the llamafiles
-kill "$(cat .pid_embedding_model)"
-kill "$(cat .pid_generation_model)"
+## Shut down the llamafiles
+#kill "$(cat .pid_embedding_model)"
+#kill "$(cat .pid_generation_model)"
 
-echo "exited."
+#echo "exited."
