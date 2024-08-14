@@ -173,4 +173,4 @@ if __name__ == "__main__":
         level=logging.INFO,
     )
     build_index()
-    # cli()
+    cli()
