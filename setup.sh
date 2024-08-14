@@ -2,7 +2,7 @@
 
 # Create virtualenv
 if [ ! -d "venv" ]; then
-  pyenv local 3.11
+  pyenv local 3.11.0  # pyenv install --list |grep 3.1      pyenv install 3.11.0
   python3 -m venv venv
   source venv/bin/activate
   pip install --upgrade pip setuptools wheel
@@ -27,13 +27,13 @@ function url_to_filename() {
 }
 
 mkdir -pv models
-cd models || exit
+cd models # || exit
 
 if [ ! -f "embedding_model.llamafile" ]
 then
   # Download and symlink embedding model
-  wget -nc "${EMBEDDING_MODEL_URL}"
   filename="$(url_to_filename "${EMBEDDING_MODEL_URL}")"
+  curl -o "${filename}" "${EMBEDDING_MODEL_URL}" -L
   chmod +x "${filename}"
   ln -s "${filename}" embedding_model.llamafile
 fi
@@ -41,12 +41,10 @@ fi
 if [ ! -f "generation_model.llamafile" ]
 then
   # Download and symlink generation model
-  wget -nc "${GENERATION_MODEL_URL}"
   filename="$(url_to_filename "${GENERATION_MODEL_URL}")"
+  curl -o "${filename}" "${GENERATION_MODEL_URL}" -L
   chmod +x "${filename}"
   ln -s "${filename}" generation_model.llamafile
 fi
 
 cd - || exit
-
-

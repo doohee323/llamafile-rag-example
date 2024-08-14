@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load config and virtualenv
-. .env
+source .env
 if [ -z "${VIRTUAL_ENV}" ]; then source venv/bin/activate; fi
 
 mkdir logs
