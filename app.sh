@@ -34,6 +34,8 @@ if [[ "$1" == "e" ]]; then
   fi
   echo "${pid}" > .pid_embedding_model
   echo "started embedding model"
+
+  while true; do echo $(date -u) >> out.txt; sleep 5; done
 fi
 
 if [[ "$1" == "g" ]]; then
