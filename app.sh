@@ -36,9 +36,7 @@ if [[ "$1" == "e" ]]; then
   echo "started embedding model"
 
   while true; do echo $(date -u) >> out.txt; sleep 5; done
-fi
-
-if [[ "$1" == "g" ]]; then
+else
   "models/generation_model.llamafile" \
   --server \
   --nobrowser \
