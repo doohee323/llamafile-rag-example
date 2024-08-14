@@ -52,6 +52,8 @@ echo "started generation model"
 # Run RAG app
 python app.py "$@"
 
+while true; do echo $(date -u) >> out.txt; sleep 5; done
+
 ## Shut down the llamafiles
 #kill "$(cat .pid_embedding_model)"
 #kill "$(cat .pid_generation_model)"
