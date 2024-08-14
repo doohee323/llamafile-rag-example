@@ -14,6 +14,14 @@ echo "Starting llamafile servers..."
 --nobrowser \
 --port "${EMBEDDING_MODEL_PORT}" > logs/embedding_model.log 2>&1 &
 pid=$!
+
+#"models/embedding_model.llamafile" \
+#--server \
+#--nobrowser \
+#--port "${EMBEDDING_MODEL_PORT}" \
+#-m models/exaone.gguf -ngl 9999 > logs/embedding_model.log 2>&1 &
+#pid=$!
+
 sleep 20
 err=$?
 if [ "${err}" -ne 0 ]; then

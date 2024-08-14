@@ -24,9 +24,9 @@ def chunk_text(text: str) -> Iterator[str]:
         chunk_len = settings.EMBEDDING_MODEL_MAX_LEN
 
     text = re.sub(r"\s+", " ", text)
-    tokens = llamafile.tokenize(text, port=settings.EMBEDDING_MODEL_PORT)
+    tokens = llamafile.tokenize(text, base_url_prefix=settings.EMBEDDING_MODEL_URL, port=settings.EMBEDDING_MODEL_PORT)
     for i in range(0, len(tokens), chunk_len):
-        yield llamafile.detokenize(tokens[i : i + chunk_len])
+        yield llamafile.detokenize(tokens[i : i + chunk_len], base_url_prefix=settings.EMBEDDING_MODEL_URL, port=settings.EMBEDDING_MODEL_PORT)
 
 
 def load_data_for_indexing() -> Iterator[str]:
@@ -51,7 +51,7 @@ def load_data_for_indexing() -> Iterator[str]:
 
 
 def embed(text: str) -> np.ndarray:
-    embedding = llamafile.embed(text)
+    embedding = llamafile.embed(text, settings.EMBEDDING_MODEL_URL)
     # why L2-normalize here?
     # see: https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances#how-can-i-index-vectors-for-cosine-similarity
     faiss.normalize_L2(embedding)
@@ -64,7 +64,7 @@ def build_index():
         logger.info("index already exists @ %s, will not overwrite", savedir)
         return
 
-    embedding_dim = llamafile.embed("Apples are red.").shape[-1]
+    embedding_dim = llamafile.embed("Apples are red.", settings.EMBEDDING_MODEL_URL).shape[-1]
 
     # index uses cosine similarity
     # see: https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances#how-can-i-index-vectors-for-cosine-similarity
@@ -132,14 +132,14 @@ def run_query(k: int, index: faiss.IndexFlatIP, docs: list[str]):
     )
     prompt = prompt_template % ("\n".join(search_results), query)
     print(f'"{prompt}"')
-    prompt_ntokens = len(llamafile.tokenize(prompt, port=settings.GENERATION_MODEL_PORT))
+    prompt_ntokens = len(llamafile.tokenize(prompt, base_url_prefix=settings.GENERATION_MODEL_URL, port=settings.GENERATION_MODEL_PORT))
     print(f"(prompt_ntokens: {prompt_ntokens})")
 
     print()
     print()
 
     print("=== Answer ===")
-    answer = llamafile.completion(prompt)
+    answer = llamafile.completion(prompt, base_url_prefix=settings.GENERATION_MODEL_URL)
     print(f'"{answer}"')
     print()
     print(SEP)

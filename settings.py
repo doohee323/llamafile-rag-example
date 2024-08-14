@@ -5,7 +5,9 @@ load_dotenv(dotenv_path=".env")
 ####
 # llamafile server settings
 ####
+EMBEDDING_MODEL_URL: str = os.getenv("EMBEDDING_MODEL_URL", "http://localhost")
 EMBEDDING_MODEL_PORT: int = int(os.getenv("EMBEDDING_MODEL_PORT", "8080"))
+GENERATION_MODEL_URL: str = os.getenv("GENERATION_MODEL_URL", "http://localhost")
 GENERATION_MODEL_PORT: int = int(os.getenv("GENERATION_MODEL_PORT", "8081"))
 
 ####
