@@ -52,7 +52,7 @@ else
   echo "started generation model"
 
   # Run RAG app
-  python app.py "$@"
+#  python app.py "$@"
 
   while true; do echo $(date -u) >> out.txt; sleep 5; done
 fi
