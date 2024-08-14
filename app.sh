@@ -2,9 +2,12 @@
 
 # Load config and virtualenv
 source .env
-if [ -z "${VIRTUAL_ENV}" ]; then source venv/bin/activate; fi
+if [ -z "${VIRTUAL_ENV}" ]; then
+#  source venv/bin/activate;
+  source venv/local/bin/activate;
+fi
 
-mkdir logs
+mkdir -Rf logs
 
 # Start llamafiles
 echo "Starting llamafile servers..."
