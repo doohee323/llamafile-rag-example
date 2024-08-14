@@ -7,7 +7,7 @@ if [ -z "${VIRTUAL_ENV}" ]; then
   source venv/local/bin/activate;
 fi
 
-mkdir -Rf logs
+mkdir -p logs
 
 # Start llamafiles
 echo "Starting llamafile servers..."
