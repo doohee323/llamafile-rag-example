@@ -115,15 +115,15 @@ def run_query(k: int, index: faiss.IndexFlatIP, docs: list[str]):
 
     print("=== Query ===")
     print(query)
-    print()
+    # print()
 
     # Vector search for top-k most similar documents
     emb = embed(query)
     scores, doc_indices = index.search(emb, k)
-    pprint_search_results(scores, doc_indices, docs)
+    # pprint_search_results(scores, doc_indices, docs)
     search_results = [docs[ix] for ix in doc_indices[0]]
 
-    print("=== Prompt ===")
+    # print("=== Prompt ===")
     prompt_template = (
         "You are an expert Q&A system. Answer the user's query using the provided context information.\n"
         "Context information:\n"
@@ -131,18 +131,18 @@ def run_query(k: int, index: faiss.IndexFlatIP, docs: list[str]):
         "Query: %s"
     )
     prompt = prompt_template % ("\n".join(search_results), query)
-    print(f'"{prompt}"')
+    # print(f'"{prompt}"')
     prompt_ntokens = len(llamafile.tokenize(prompt, base_url_prefix=settings.GENERATION_MODEL_URL, port=settings.GENERATION_MODEL_PORT))
-    print(f"(prompt_ntokens: {prompt_ntokens})")
+    # print(f"(prompt_ntokens: {prompt_ntokens})")
 
-    print()
-    print()
+    # print()
+    # print()
 
-    print("=== Answer ===")
+    # print("=== Answer ===")
     answer = llamafile.completion(prompt, base_url_prefix=settings.GENERATION_MODEL_URL)
     print(f'"{answer}"')
-    print()
-    print(SEP)
+    # print()
+    # print(SEP)
 
 
 @click.group(invoke_without_command=True)

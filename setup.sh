@@ -24,8 +24,12 @@ if [ ! -f ".env" ]; then cp -v .env.example .env; fi
 # - models/embedding_model.llamafile
 # - models/generation_model.llamafile
 #
-EMBEDDING_MODEL_URL="https://huggingface.co/Mozilla/mxbai-embed-large-v1-llamafile/resolve/main/mxbai-embed-large-v1-f16.llamafile"
-#EMBEDDING_MODEL_URL="https://github.com/Mozilla-Ocho/llamafile/releases/download/0.8.12/llamafile-0.8.12"
+# https://github.com/Mozilla-Ocho/llamafile
+#EMBEDDING_MODEL_URL="https://huggingface.co/Mozilla/mxbai-embed-large-v1-llamafile/resolve/main/mxbai-embed-large-v1-f16.llamafile"
+EMBEDDING_MODEL_URL="https://huggingface.co/Mozilla/llava-v1.5-7b-llamafile/resolve/main/llava-v1.5-7b-q4.llamafile"
+#EMBEDDING_MODEL_URL="https://huggingface.co/jartine/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q5_K_M.llamafile"
+
+#GENERATION_MODEL_URL="https://huggingface.co/Mozilla/Meta-Llama-3-8B-Instruct-llamafile/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_M.llamafile"
 GENERATION_MODEL_URL="https://huggingface.co/Mozilla/Mistral-7B-Instruct-v0.2-llamafile/resolve/main/mistral-7b-instruct-v0.2.Q4_0.llamafile"
 
 function url_to_filename() {
@@ -46,11 +50,6 @@ then
   rm -Rf embedding_model.llamafile
   ln -s "${filename}" embedding_model.llamafile
 fi
-
-#if [ ! -f "exaone-3.0-7.8B-it-Q5_K_M.gguf" ]
-#then
-#  curl -L -o exaone.gguf https://huggingface.co/Bingsu/exaone-3.0-7.8b-it/resolve/main/exaone-3.0-7.8B-it-Q5_K_M.gguf
-#fi
 
 if [ ! -f "generation_model.llamafile" ]
 then
