@@ -15,6 +15,7 @@ GENERATION_MODEL_PORT: int = int(os.getenv("GENERATION_MODEL_PORT", "8081"))
 ####
 INDEX_URLS: list[str] = os.getenv("INDEX_URLS").split(",") if os.getenv("INDEX_URLS") else []
 INDEX_LOCAL_DATA_DIRS: list[str] = os.getenv("INDEX_LOCAL_DATA_DIRS", "./local_data").split(",")
+INDEX_TMP_DATA_DIRS: list[str] = os.getenv("INDEX_TMP_DATA_DIRS", "./tmp_data").split(",")
 
 # documents will be split into snippets of size <chunk_len> before indexing
 # if set to -1, will using `EMBEDDING_MODEL_MAX_LEN`

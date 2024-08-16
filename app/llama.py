@@ -57,6 +57,13 @@ class Llama:
                     for chunk in self.chunk_text(text):
                         yield chunk
 
+    def load_data_for_tmp_indexing(self) -> Iterator[str]:
+        for directory in settings.INDEX_TMP_DATA_DIRS:
+            for path in Path(directory).rglob("*.txt"):
+                with open(path, "r") as f:
+                    text = f.read()
+                    for chunk in self.chunk_text(text):
+                        yield chunk
 
     def embed(self, text: str) -> np.ndarray:
         embedding = llamafile.embed(text, settings.EMBEDDING_MODEL_URL)
@@ -89,6 +96,16 @@ class Llama:
         with open(savedir / "index.json", "w") as fout:
             json.dump(docs, fout)
 
+    def append_index(self, index, docs):
+        savedir = Path(settings.INDEX_SAVE_DIR)
+        for text in self.load_data_for_tmp_indexing():
+            embedding = self.embed(text)
+            index.add(embedding)
+            docs.append(text)
+        savedir.mkdir(parents=True)
+        faiss.write_index(index, str(savedir / "index.faiss"))
+        with open(savedir / "index.json", "w") as fout:
+            json.dump(docs, fout)
 
     def load_index(self):
         savedir = Path(settings.INDEX_SAVE_DIR)

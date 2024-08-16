@@ -8,7 +8,7 @@ if [ ! -d "venv" ]; then
 #  python3 -m venv venv
 #  source venv/bin/activate
 
-  # pip install virtualenv
+  # pip3 install virtualenv
   virtualenv venv --python=python3.10
   source venv/local/bin/activate
 

@@ -113,6 +113,14 @@ class Controller:
             self.llama.build_index()
             self.index, self.docs = self.llama.load_index()
             out = 'index is reloaded'
+        # curl -X POST http://localhost:8000/api/tmpidx
+        elif httpd.path == '/api/tmpidx':
+            index, docs = self.llama.load_index()
+            if os.path.exists('./index-toy'):
+                shutil.rmtree('./index-toy')
+            self.llama.append_index(index, docs)
+            self.index, self.docs = self.llama.load_index()
+            out = 'index is reloaded'
         # curl -d '{"query":"What does Alec like?"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
         # curl -d '{"query":"Seojun"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
         elif httpd.path == '/api/query':
