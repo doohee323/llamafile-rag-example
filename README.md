@@ -16,7 +16,7 @@ curl -X GET http://localhost:8000/api/query?query=What%20does%20Daniel%20like
 
 curl -d '{"query":"홍두희는 무엇을 좋아하나? 한국어로 답해줘"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
 curl -d '{"query":"ArogoCD는 왜 쓰는 거지? 한국어로 답해줘"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
-curl -d '{"query":"GitOps on K8S을 설명해줘? 한국어로 답해줘"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
+curl -d '{"query":"GitOps on K8S을 한국어로 설명해줘"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
 
 curl -d '{"query":"홍두희는 무엇을 좋아하나? 한국어로 답해줘?"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
 

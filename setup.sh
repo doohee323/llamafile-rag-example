@@ -25,9 +25,8 @@ if [ ! -f ".env" ]; then cp -v .env.example .env; fi
 # - models/generation_model.llamafile
 #
 # https://github.com/Mozilla-Ocho/llamafile
-EMBEDDING_MODEL_URL="https://huggingface.co/Mozilla/Meta-Llama-3.1-8B-llamafile/resolve/main/Meta-Llama-3.1-8B.Q6_K.llamafile"
-GENERATION_MODEL_URL="https://huggingface.co/Mozilla/Meta-Llama-3-8B-Instruct-llamafile/resolve/main/Meta-Llama-3-8B-Instruct.Q5_K_M.llamafile"
-#GENERATION_MODEL_URL="https://huggingface.co/Mozilla/Meta-Llama-3.1-8B-Instruct-llamafile/resolve/main/Meta-Llama-3.1-8B-Instruct.Q6_K.llamafile"
+EMBEDDING_MODEL_URL="https://huggingface.co/Mozilla/Meta-Llama-3-8B-Instruct-llamafile/resolve/main/Meta-Llama-3-8B-Instruct.Q4_0.llamafile"
+GENERATION_MODEL_URL="https://huggingface.co/Mozilla/Mistral-7B-Instruct-v0.2-llamafile/resolve/main/mistral-7b-instruct-v0.2.Q4_0.llamafile"
 
 function url_to_filename() {
   url=$1
