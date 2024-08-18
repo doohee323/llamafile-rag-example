@@ -22,7 +22,6 @@ auth_users = {
 }
 
 APP_VERSION = '0.2'
-# logger config
 logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO,
                     format='%(message)s')
@@ -33,16 +32,16 @@ class AuthHTTPRequestHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def end_headers(self):
+    def end_headers_ext(self):
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         super().end_headers()
 
     def do_OPTIONS(self):
-        self.send_response(200, "ok")
+        self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
@@ -90,10 +89,6 @@ def run(server_class=HTTPServer, handler_class=AuthHTTPRequestHandler, port=8000
     httpd = server_class(server_address, handler_class)
     print(f'Starting server on port {port}...')
     httpd.serve_forever()
-    #
-    # server = http.server.HTTPServer((args.listen, args.port), AuthHTTPRequestHandler)
-    # print("server started with 8000")
-    # server.serve_forever()
 
 
 if __name__ == "__main__":

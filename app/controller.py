@@ -131,20 +131,15 @@ class Controller:
                 out = 'message is required.'
                 httpd.send_response(500)
             else:
-                # out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
-                out = "aaa"
+                out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
+                out = '111'
                 httpd.send_response(200)
         else:
             out = 'Not found!'
-        # httpd.send_header("Content-type", "application/json")
-        # httpd.end_headers()
-        # httpd.wfile.write(bytes("{\"result\":\"" + out + "\"}", 'utf-8'))
-
         httpd.send_header('Content-type', 'application/json')
-        httpd.end_headers()
+        httpd.end_headers_ext()
         response_json = json.dumps({
-            'status': 'success',
-            'received': 'aaa'
+            'message': out
         })
         httpd.wfile.write(response_json.encode('utf-8'))
 
