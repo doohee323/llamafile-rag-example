@@ -1,4 +1,4 @@
-from http.server import HTTPServer
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import argparse
 import http.server
 import base64
@@ -27,24 +27,23 @@ logger = logging.getLogger()
 logging.basicConfig(level=logging.INFO,
                     format='%(message)s')
 
-
-class AuthHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+class AuthHTTPRequestHandler(SimpleHTTPRequestHandler):
     controller = Controller()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # def end_headers(self):
-    #     self.send_header('Access-Control-Allow-Origin', '*')
-    #     self.send_header('Access-Control-Allow-Methods', "GET,POST,OPTIONS,DELETE,PUT")
-    #     self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate')
-    #     return super(AuthHTTPRequestHandler, self).end_headers()
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        super().end_headers()
 
     def do_OPTIONS(self):
         self.send_response(200, "ok")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
     def do_GET(self):
@@ -86,6 +85,17 @@ class AuthHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         return username
 
 
+def run(server_class=HTTPServer, handler_class=AuthHTTPRequestHandler, port=8000):
+    server_address = ('', port)
+    httpd = server_class(server_address, handler_class)
+    print(f'Starting server on port {port}...')
+    httpd.serve_forever()
+    #
+    # server = http.server.HTTPServer((args.listen, args.port), AuthHTTPRequestHandler)
+    # print("server started with 8000")
+    # server.serve_forever()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a simple HTTP server")
     parser.add_argument(
@@ -102,7 +112,4 @@ if __name__ == "__main__":
         help="Specify the port on which the server listens",
     )
     args = parser.parse_args()
-
-    server = http.server.HTTPServer((args.listen, args.port), AuthHTTPRequestHandler)
-    print("server started with 8000")
-    server.serve_forever()
+    run()

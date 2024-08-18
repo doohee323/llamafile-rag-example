@@ -257,9 +257,6 @@ export default {
       $this.setFileUpload($('#file-upload-form'));
     }, 500);
   },
-  updated() {
-    resetParsley(this.$form);
-  },
 };
 
 </script>

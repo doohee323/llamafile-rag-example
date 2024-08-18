@@ -127,17 +127,26 @@ class Controller:
             content_length = int(httpd.headers['Content-Length'])
             post_data = httpd.rfile.read(content_length)
             params = json.loads(str(post_data, 'utf-8'))
-            if 'query' not in params:
-                out = 'query is required.'
+            if 'message' not in params:
+                out = 'message is required.'
                 httpd.send_response(500)
             else:
-                out = self.llama.run_query(3, self.index, params.get('query'), self.docs)
+                # out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
+                out = "aaa"
                 httpd.send_response(200)
         else:
             out = 'Not found!'
-        httpd.protocol_version = 'HTTP/1.0'
-        httpd.send_header("Content-type", "application/json")
+        # httpd.send_header("Content-type", "application/json")
+        # httpd.end_headers()
+        # httpd.wfile.write(bytes("{\"result\":\"" + out + "\"}", 'utf-8'))
+
+        httpd.send_header('Content-type', 'application/json')
         httpd.end_headers()
-        httpd.wfile.write(bytes("{\"result\":\"" + out + "\"}", 'utf-8'))
+        response_json = json.dumps({
+            'status': 'success',
+            'received': 'aaa'
+        })
+        httpd.wfile.write(response_json.encode('utf-8'))
+
 
 

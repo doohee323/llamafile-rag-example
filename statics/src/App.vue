@@ -16,8 +16,7 @@
 
 <script>
 
-import {getCache, initSCacheEx, setCache} from '@/assets/cache.js'
-import $ from "jquery";
+import {getCache, setCache} from '@/assets/cache.js'
 
 export default {
   components: {},
