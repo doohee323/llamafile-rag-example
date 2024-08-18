@@ -99,13 +99,6 @@ class Controller:
                     httpd.end_headers()
                     httpd.wfile.write(b"No file field in request")
             return
-        # curl -d '{"filename":"11.txt"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/load
-        elif httpd.path == '/api/load':
-            content_length = int(httpd.headers['Content-Length'])
-            post_data = httpd.rfile.read(content_length)
-            params = json.loads(str(post_data, 'utf-8'))
-            shutil.move(UPLOAD_DIR + '/' + params.get('filename'), './local_data/' + params.get('filename'))
-            out = 'A file is loaded.'
         # curl -X POST http://localhost:8000/api/reload
         elif httpd.path == '/api/reload':
             if os.path.exists('./index-toy'):
@@ -113,8 +106,12 @@ class Controller:
             self.llama.build_index()
             self.index, self.docs = self.llama.load_index()
             out = 'index is reloaded'
-        # curl -X POST http://localhost:8000/api/tmpidx
-        elif httpd.path == '/api/tmpidx':
+        # curl -d '{"filename":"11.txt"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/applyidx
+        elif httpd.path == '/api/applyidx':
+            content_length = int(httpd.headers['Content-Length'])
+            post_data = httpd.rfile.read(content_length)
+            params = json.loads(str(post_data, 'utf-8'))
+            shutil.move(UPLOAD_DIR + '/' + params.get('filename'), './local_data/' + params.get('filename'))
             index, docs = self.llama.load_index()
             if os.path.exists('./index-toy'):
                 shutil.rmtree('./index-toy')
@@ -131,7 +128,7 @@ class Controller:
                 out = 'message is required.'
                 httpd.send_response(500)
             else:
-                out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
+                # out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
                 out = '111'
                 httpd.send_response(200)
         else:

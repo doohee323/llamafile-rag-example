@@ -9,10 +9,10 @@
             <div id="resultText">How can I help you today?</div>
         </div>
         <div class="input-area">
-            <input id="promptInput" type="text" placeholder="Enter prompt..."/>
-            <button id="queryBtn" class="btn btn-primary float-right" @click="queryBtn()">Chat</button>
+            <input type="text" v-model="promptInput" placeholder="Enter prompt..."/>
+            <button class="btn btn-primary float-right" :disabled="chatBtn" @click="chatFn()">Chat</button>
             <router-link id="uploadBtn" class="btn btn-primary float-right" :to="{name: 'Upload Image', params: {}}">Upload a File </router-link>
-            <button id="clearBtn" class="btn btn-primary float-right" @click="clearInput()">Clear Context</button>
+            <button class="btn btn-primary float-right" :disabled="applyBtn" @click="applyFn()">Apply Context</button>
         </div>
     </div>
   </div>
@@ -25,72 +25,84 @@ import {getCache} from "@/assets/cache";
 
 export default {
     data() {
-        this.API_URL = "http://localhost:8000/api/query";
+        this.API_SERVER = "http://localhost:8000";
         this.API_KEY = "not-needed";
-        if (!window.message) {
-            window.message = '';
-        }
         this.$root.hasAuth = getCache('session', 'hasAuth') === 'true';
         return {
+            chatBtn: false,
+            applyBtn: false,
+            promptInput: '',
             hasAuth: this.$root.hasAuth
         };
     },
     props: [],
     mounted() {
         $('.loading').hide();
-        $('.cluster-link').click(function (e) {
-            let url = $(e.currentTarget).attr('href');
-            url = url.replaceAll('sl-336363860990', $('#aws-account').val());
-            window.open(url, "_blank");
-        });
+        this.resultText = document.getElementById("resultText");
     },
     methods: {
-        queryBtn(){
-          this.chat();
-        },
-        chat() {
+        chatFn() {
             debugger;
-            const promptInput = document.getElementById("promptInput");
-            const queryBtn = document.getElementById("queryBtn");
-            const resultText = document.getElementById("resultText");
-            if (!promptInput.value) {
+            if (this.promptInput === '') {
                 alert("Please enter a prompt.");
                 return;
             }
-            window.message = promptInput.value;
-            queryBtn.disabled = true;
-            resultText.innerHTML += "<br/><br/><span style='color: lightblue;'>Prompt: " + promptInput.value + "</span><br/><br/>";
-            $.ajax(this.API_URL, {
+            this.chatBtn = true;
+            this.resultText.innerHTML += "<br/><br/><span style='color: lightblue;'>Prompt: " + this.promptInput + "</span><br/><br/>";
+            let _this = this;
+            $.ajax(this.API_SERVER + '/api/query', {
                 method: "POST",
                 timeout: 30000,
                 data: JSON.stringify({
-                    message: window.message,
+                    message: this.promptInput,
                 }),
                 success: function(res) {
-                    let value = res.message;
-                    promptInput.value = "";
-                    window.message = value;
+                    _this.promptInput = "";
                     let regex = /```(\w+)?\n?(.*?)```/gs;
-                    resultText.innerHTML = resultText.innerHTML.replace(regex, (match, lang, code) => {
+                    _this.resultText.innerHTML = _this.resultText.innerHTML.replace(regex, (match, lang, code) => {
                         const languageClass = lang ? ` class="language-${lang}"` : '';
                         return `<pre><code${languageClass}>${code}</code></pre>`;
                     });
-                    resultText.innerHTML += `<span style='color: red;'>${window.message}</span>`;
-                    resultText.innerHTML += "<br/><span style='color: gray;'>[End of Response]</span><br/>";
+                    _this.resultText.innerHTML += `<span style='color: red;'>${res.message}</span>`;
+                    _this.resultText.innerHTML += "<br/><span style='color: gray;'>[End of Response]</span><br/>";
                 },
                 error: function(e) {
                     console.log('API request failed with status:', e.status);
-                    resultText.innerHTML += 'Failed to fetch data.';
+                    _this.resultText.innerHTML += 'Failed to fetch data.';
                 },
                 complete: function() {
-                    queryBtn.disabled = false;
+                    _this.chatBtn = false;
                 }
             });
         },
-        clearInput() {
-            document.getElementById("promptInput").value = "";
-            document.getElementById("resultText").innerText = "How can I help you today?";
+        applyFn() {
+            debugger;
+            let _this = this;
+            $.ajax(this.API_SERVER + '/api/applyidx', {
+                method: "POST",
+                timeout: 30000,
+                data: JSON.stringify({
+                    message: '11.txt',
+                }),
+                success: function(res) {
+                    _this.promptInput = "";
+                    let regex = /```(\w+)?\n?(.*?)```/gs;
+                    _this.resultText.innerHTML = _this.resultText.innerHTML.replace(regex, (match, lang, code) => {
+                        const languageClass = lang ? ` class="language-${lang}"` : '';
+                        return `<pre><code${languageClass}>${code}</code></pre>`;
+                    });
+                    _this.resultText.innerHTML += `<span style='color: red;'>${res.message}</span>`;
+                    _this.resultText.innerHTML += "<br/><span style='color: gray;'>[End of Response]</span><br/>";
+                },
+                error: function(e) {
+                    console.log('API request failed with status:', e.status);
+                    _this.resultText.innerHTML += 'Failed to fetch data.';
+                },
+                complete: function() {
+                    _this.chatBtn = false;
+                }
+            });
         },
-  }
+    }
 };
 </script>
