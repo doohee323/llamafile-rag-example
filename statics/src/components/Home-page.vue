@@ -56,6 +56,7 @@ export default {
             }
             this.chatBtn = true;
             this.resultText.innerHTML += "<br/><br/><span style='color: lightblue;'>Prompt: " + this.promptInput + "</span><br/><br/>";
+            this.rescrollHistory();
             let _this = this;
             $.ajax(this.API_SERVER + '/api/query', {
                 method: "POST",
