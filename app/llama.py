@@ -1,17 +1,17 @@
-import json
-import logging
 import re
 import traceback
-from pathlib import Path
 from typing import Iterator
-
 import faiss
 import numpy as np
-import requests
 from bs4 import BeautifulSoup
-
-import settings
 import llamafile_client as llamafile
+import os
+import requests
+import json
+import logging
+import shutil
+import settings
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ class Llama:
     def load_data_for_indexing(self) -> Iterator[str]:
         for url in settings.INDEX_URLS:
             try:
+                print(f'load_data_for_indexing: {url}')
                 response = requests.get(url)
                 response.raise_for_status()
                 text = BeautifulSoup(response.text, "html.parser").get_text()
@@ -52,70 +53,65 @@ class Llama:
 
         for directory in settings.INDEX_LOCAL_DATA_DIRS:
             for path in Path(directory).rglob("*.txt"):
+                print(f'load_data_for_indexing: {path}')
                 with open(path, "r") as f:
                     text = f.read()
                     for chunk in self.chunk_text(text):
                         yield chunk
+        print(f'load_data_for_indexing is done!')
 
     def load_data_for_tmp_indexing(self) -> Iterator[str]:
-        for directory in settings.INDEX_TMP_DATA_DIRS:
-            for path in Path(directory).rglob("*.txt"):
-                with open(path, "r") as f:
-                    text = f.read()
-                    for chunk in self.chunk_text(text):
-                        yield chunk
+        for path in Path(settings.INDEX_TMP_DATA_DIR).rglob("*.txt"):
+            print(f'load_data_for_tmp_indexing: {path}')
+            with open(path, "r") as f:
+                text = f.read()
+                for chunk in self.chunk_text(text):
+                    yield chunk
 
     def embed(self, text: str) -> np.ndarray:
         embedding = llamafile.embed(text, settings.EMBEDDING_MODEL_URL)
-        # why L2-normalize here?
-        # see: https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances#how-can-i-index-vectors-for-cosine-similarity
         faiss.normalize_L2(embedding)
         return embedding
 
 
     def build_index(self):
-        savedir = Path(settings.INDEX_SAVE_DIR)
-        if savedir.exists():
-            logger.info("index already exists @ %s, will not overwrite", savedir)
+        saveDir = Path(settings.INDEX_SAVE_DIR)
+        if saveDir.exists():
+            logger.info("index already exists @ %s, will not overwrite", saveDir)
             return
-
         embedding_dim = llamafile.embed("Apples are red.", settings.EMBEDDING_MODEL_URL).shape[-1]
-
-        # index uses cosine similarity
-        # see: https://github.com/facebookresearch/faiss/wiki/MetricType-and-distances#how-can-i-index-vectors-for-cosine-similarity
         index = faiss.IndexFlatIP(embedding_dim)
-
         docs = []
         for text in self.load_data_for_indexing():
             embedding = self.embed(text)
             index.add(embedding)
             docs.append(text)
 
-        savedir.mkdir(parents=True)
-        faiss.write_index(index, str(savedir / "index.faiss"))
-        with open(savedir / "index.json", "w") as fout:
+        saveDir.mkdir(parents=True)
+        faiss.write_index(index, str(saveDir / "index.faiss"))
+        with open(saveDir / "index.json", "w") as fout:
             json.dump(docs, fout)
 
     def append_index(self, index, docs):
-        savedir = Path(settings.INDEX_SAVE_DIR)
+        saveDir = Path(settings.INDEX_SAVE_DIR)
         for text in self.load_data_for_tmp_indexing():
             embedding = self.embed(text)
             index.add(embedding)
             docs.append(text)
-        savedir.mkdir(parents=True)
-        faiss.write_index(index, str(savedir / "index.faiss"))
-        with open(savedir / "index.json", "w") as fout:
+        saveDir.mkdir(parents=True)
+        faiss.write_index(index, str(saveDir / "index.faiss"))
+        with open(saveDir / "index.json", "w") as fout:
             json.dump(docs, fout)
 
     def load_index(self):
-        savedir = Path(settings.INDEX_SAVE_DIR)
-        if not savedir.exists():
-            raise FileNotFoundError(f"index not found @ {savedir}")
+        saveDir = Path(settings.INDEX_SAVE_DIR)
+        if not saveDir.exists():
+            raise FileNotFoundError(f"index not found @ {saveDir}")
 
-        index = faiss.read_index(str(savedir / "index.faiss"))
-        logger.info("index with %d entries loaded from %s", index.ntotal, savedir)
+        index = faiss.read_index(str(saveDir / "index.faiss"))
+        logger.info("index with %d entries loaded from %s", index.ntotal, saveDir)
 
-        with open(savedir / "index.json", "r") as fin:
+        with open(saveDir / "index.json", "r") as fin:
             docs = json.load(fin)
         return index, docs
 
@@ -129,13 +125,8 @@ class Llama:
     SEP = "-"*80
 
     def run_query(self, k: int, index: faiss.IndexFlatIP, query, docs: list[str]):
-        # print("=== Query ===")
-        # print(query)
-
-        # Vector search for top-k most similar documents
         emb = self.embed(query)
         scores, doc_indices = index.search(emb, k)
-        # pprint_search_results(scores, doc_indices, docs)
         search_results = [docs[ix] for ix in doc_indices[0]]
         prompt_template = (
             "You are an expert Q&A system. Answer the user's query using the provided context information.\n"
@@ -146,8 +137,6 @@ class Llama:
         prompt = prompt_template % ("\n".join(search_results), query)
         prompt_ntokens = len(llamafile.tokenize(prompt, base_url_prefix=settings.GENERATION_MODEL_URL, port=settings.GENERATION_MODEL_PORT))
         # print(f"(prompt_ntokens: {prompt_ntokens})")
-
-        # print("=== Answer ===")
         answer = llamafile.completion(prompt, base_url_prefix=settings.GENERATION_MODEL_URL)
         answer = answer.replace('what?\nAnswer: ', '').replace('</s>', '').strip()
         print(f'"{answer}"')
@@ -157,3 +146,28 @@ class Llama:
         index, docs = self.load_index()
         while True:
             self.run_query(k_search_results, index, docs)
+
+    def reload(self):
+        if os.path.exists('./index-toy'):
+            shutil.rmtree('./index-toy')
+        self.build_index()
+        return self.load_index()
+
+    def reset(self):
+        if os.path.exists(settings.INDEX_TMP_DATA_DIR):
+            shutil.rmtree(settings.INDEX_TMP_DATA_DIR)
+        if os.path.exists('./index-toy'):
+            shutil.rmtree('./index-toy')
+        Path(settings.INDEX_TMP_DATA_DIR).mkdir(parents=True)
+        self.build_index()
+        return self.load_index()
+
+    def applyidx(self, source, target):
+        if os.path.exists(target):
+            os.remove(target)
+        shutil.move(source, target)
+        index, docs = self.load_index()
+        if os.path.exists('./index-toy'):
+            shutil.rmtree('./index-toy')
+        self.append_index(index, docs)
+        return self.load_index()

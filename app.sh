@@ -43,9 +43,6 @@ else
   echo "${pid}" > .pid_generation_model
   echo "started generation model"
 
-  # Run RAG app
-#  python app.py "$@"
-
   while true; do echo $(date -u) >> out.txt; sleep 5; done
 fi
 

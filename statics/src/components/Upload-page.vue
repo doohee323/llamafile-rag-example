@@ -61,7 +61,7 @@
 
 import $ from 'jquery';
 import {showMessage} from '@/assets/forms.js'
-import {getCache} from "@/assets/cache";
+import {getCache, setCache} from "@/assets/cache";
 
 export default {
   data: function () {
@@ -196,8 +196,6 @@ export default {
         xhr.open('POST', `${apiUrl}/upload`, true);
         xhr.overrideMimeType("application/octet-stream");
         xhr.setRequestHeader("Accept", "*/*");
-        xhr.onreadystatechange = function () {
-        };
         xhr.send($this.formData);
       } catch (e) {
         return $this.returnError(e.responseText);
@@ -215,6 +213,7 @@ export default {
         file_upload.prop('disabled', false);
         file_upload_btn.removeClass('disabled');
         ajax_msg.text('Successfully uploaded!');
+        setCache('chat', 'tmtidx', this.upload_file.name);
         showMessage(true, 'success', 60000);
         setTimeout(function () {
           callback();

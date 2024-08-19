@@ -1,18 +1,15 @@
 import os
-from io import BytesIO
 import requests
 from app.llama import Llama
 import json
 import logging
 import cgi
-import shutil
-from urllib.parse import parse_qs, unquote
+from urllib.parse import unquote
+import settings
 
 APP_VERSION = '0.2'
-# logger config
 logger = logging.getLogger()
-logging.basicConfig(level=logging.INFO,
-                    format='%(message)s')
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 UPLOAD_DIR = "./uploads"
 ALLOWED_ORIGINS = ["*"]
@@ -99,40 +96,36 @@ class Controller:
                     httpd.end_headers()
                     httpd.wfile.write(b"No file field in request")
             return
+
+        content_length = int(httpd.headers['Content-Length'])
+        post_data = httpd.rfile.read(content_length)
+        params = json.loads(str(post_data, 'utf-8'))
+        httpd.send_response(200)
+
         # curl -X POST http://localhost:8000/api/reload
-        elif httpd.path == '/api/reload':
-            if os.path.exists('./index-toy'):
-                shutil.rmtree('./index-toy')
-            self.llama.build_index()
-            self.index, self.docs = self.llama.load_index()
-            out = 'index is reloaded'
+        if httpd.path == '/api/reload':
+            self.index, self.docs = self.llama.reload()
+            out = 'Indexes are reloaded!'
+        # curl -X POST http://localhost:8000/api/reset
+        elif httpd.path == '/api/reset':
+            self.index, self.docs = self.llama.reset()
+            out = 'Indexes are reset!'
         # curl -d '{"filename":"11.txt"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/applyidx
         elif httpd.path == '/api/applyidx':
-            content_length = int(httpd.headers['Content-Length'])
-            post_data = httpd.rfile.read(content_length)
-            params = json.loads(str(post_data, 'utf-8'))
-            shutil.move(UPLOAD_DIR + '/' + params.get('filename'), './local_data/' + params.get('filename'))
-            index, docs = self.llama.load_index()
-            if os.path.exists('./index-toy'):
-                shutil.rmtree('./index-toy')
-            self.llama.append_index(index, docs)
-            self.index, self.docs = self.llama.load_index()
-            out = 'index is reloaded'
+            source = UPLOAD_DIR + '/' + params.get('filename')
+            target = settings.INDEX_TMP_DATA_DIR + '/' + params.get('filename')
+            self.index, self.docs = self.llama.applyidx(source, target)
+            out = 'Indexes are reloaded!'
         # curl -d '{"query":"What does Alec like?"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
-        # curl -d '{"query":"Seojun"}' -H "Content-Type: application/json" -X POST http://localhost:8000/api/query
         elif httpd.path == '/api/query':
-            content_length = int(httpd.headers['Content-Length'])
-            post_data = httpd.rfile.read(content_length)
-            params = json.loads(str(post_data, 'utf-8'))
             if 'message' not in params:
                 out = 'message is required.'
                 httpd.send_response(500)
             else:
-                # out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
-                out = '111'
-                httpd.send_response(200)
+                out = self.llama.run_query(3, self.index, params.get('message'), self.docs)
+                # out = '111'
         else:
-            out = 'Not found!'
+            out = 'API Not found!'
         httpd.send_header('Content-type', 'application/json')
         httpd.end_headers_ext()
         response_json = json.dumps({
